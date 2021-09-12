@@ -24,3 +24,8 @@ dhcp-option=option6:dns-server,[xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]
 ```
 
 `xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx` is your IPv6 global unicast address assigned at your computer.
+
+## How to check syntax
+```
+dnsmasq --test
+```
