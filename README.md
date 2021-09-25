@@ -7,13 +7,23 @@ Execute the following commands.
 
 ```shell
 cd dnsmasq-conf
+ln -s <YOUR_PRIVATE_DNSMASQ_CONF_DIR> $PWD/dnsmasq/dnsmasq.priv
+
 sudo rm /etc/dnsmasq.conf
 sudo rm -r /etc/dnsmasq.d
+
+sudo mkdir    /etc/dnsmasq.toggle
+sudo mkdir -p /etc/dnsmasq.priv/toggle
+
 sudo ln -s $PWD/dnsmasq/dnsmasq.conf  /etc
 sudo ln -s $PWD/dnsmasq/dnsmasq.d     /etc
-sudo ln -s $PWD/dnsmasq/dnsmasq.priv  /etc
+# sudo ln -s $PWD/dnsmasq/dnsmasq.blist /etc
 sudo ln -s $PWD/dnsmasq/dnsmasq.wlist /etc
-sudo mkdir /etc/dnsmasq.toggle
+
+sudo ln -s $PWD/dnsmasq/dnsmasq.priv/default   /etc/dnsmasq.priv
+# sudo ln -s $PWD/dnsmasq/dnsmasq.priv/blacklist /etc/dnsmasq.priv
+# sudo ln -s $PWD/dnsmasq/dnsmasq.priv/whitelist /etc/dnsmasq.priv
+
 sudo systemctl enable dnsmasq
 ```
 
