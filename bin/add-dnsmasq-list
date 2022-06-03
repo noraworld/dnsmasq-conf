@@ -1,0 +1,38 @@
+#!/bin/sh
+
+main() {
+  validate "$@"
+
+  url=$1                     # "https://example.com/foo/bar"
+  path=$2                    # "/home/ubuntu/workspace/dnsmasq-conf/dnsmasq/dnsmasq.toggle/youtube.conf"
+  rule="address=/$(domain)/" # "address=/example.com/
+
+  if [ "$(grep -c "$rule" "$path")" -eq 0 ]; then
+    echo "$rule" >> "$path"
+  else
+    echo "Error: \"$(domain)\" already exists in $(basename $path)." >&2
+    exit 2
+  fi
+
+  grep "$rule" "$path"
+}
+
+
+
+domain() {
+  # "https://example.com/foo/bar" -> "example.com"
+  echo "$url" | awk -F[/:] '{print $4}'
+}
+
+
+
+validate() {
+  if [ "$#" -ne 2 ]; then
+    echo "Error: The number of arguments is wrong." >&2
+    exit 1
+  fi
+}
+
+
+
+main "$@"
