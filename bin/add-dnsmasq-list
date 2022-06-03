@@ -21,6 +21,7 @@ main() {
 
 domain() {
   # "https://example.com/foo/bar" -> "example.com"
+  #   cf. https://stackoverflow.com/questions/2497215/how-to-extract-domain-name-from-url#answer-11385736
   echo "$url" | awk -F[/:] '{print $4}'
 }
 
