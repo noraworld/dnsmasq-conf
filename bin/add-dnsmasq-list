@@ -9,6 +9,7 @@ main() {
 
   if [ "$(grep -c "$rule" "$path")" -eq 0 ]; then
     echo "$rule" >> "$path"
+    sudo systemctl restart dnsmasq
   else
     echo "Error: \"$(domain)\" already exists in $(basename $path)." >&2
     exit 2
