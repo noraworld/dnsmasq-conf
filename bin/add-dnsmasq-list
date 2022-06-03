@@ -3,7 +3,12 @@
 main() {
   validate "$@"
 
-  url=$1                     # "https://example.com/foo/bar"
+  # "https://example.com/foo/bar"
+  if [ -z "$(echo $1 | awk '{ print $2 }')" ]; then
+    url=$1
+  else
+    url=$(echo $1 | awk '{ print $2 }')
+  fi
   path=$2                    # "/home/ubuntu/workspace/dnsmasq-conf/dnsmasq/dnsmasq.toggle/youtube.conf"
   rule="address=/$(domain)/" # "address=/example.com/
 
