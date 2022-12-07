@@ -17,7 +17,7 @@ sudo mkdir -p /etc/dnsmasq.priv/toggle
 
 sudo ln -s $PWD/dnsmasq/dnsmasq.conf  /etc
 sudo ln -s $PWD/dnsmasq/dnsmasq.d     /etc
-# sudo ln -s $PWD/dnsmasq/dnsmasq.blist /etc
+sudo ln -s $PWD/dnsmasq/dnsmasq.blist /etc
 sudo ln -s $PWD/dnsmasq/dnsmasq.wlist /etc
 
 sudo ln -s $PWD/dnsmasq/dnsmasq.priv/default   /etc/dnsmasq.priv
