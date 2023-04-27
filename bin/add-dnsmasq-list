@@ -16,7 +16,7 @@ main() {
 
   if [ "$(grep -c "$rule" "$path")" -eq 0 ]; then
     echo "$rule" >> "$path"
-    erd --log /home/ubuntu/.log/erd.log --from "$PROG_NAME"
+    exrd --log /home/ubuntu/.log/exrd.log --from "$PROG_NAME"
   else
     echo "Error: \"$(domain)\" already exists in $(basename $path)." >&2
     exit 2

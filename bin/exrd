@@ -1,7 +1,7 @@
 #!/bin/sh
 # shellcheck disable=SC2004
 
-# ERD (Exclusively Restart Dnsmasq)
+# ExRD (Exclusively Restart Dnsmasq)
 # This script just restarts the Dnsmasq daemon, essentially, but keeps it from failing by maneuvering exclusively.
 
 set -eu
@@ -80,7 +80,7 @@ print_debug_info() {
 
 # @getoptions
 parser_definition() {
-  setup   REST help:usage -- "Usage: erd [options]... [arguments]..." ''
+  setup   REST help:usage -- "Usage: exrd [options]... [arguments]..." ''
   msg -- 'Options:'
   #flag    FLAG    -f --flag                 -- "takes no arguments"
   param    LOG        --log                  -- "output the log to the specified file"
@@ -154,7 +154,7 @@ parse() {
 }
 usage() {
 cat<<'GETOPTIONSHERE'
-Usage: erd [options]... [arguments]...
+Usage: exrd [options]... [arguments]...
 
 Options:
       --log LOG               output the log to the specified file
