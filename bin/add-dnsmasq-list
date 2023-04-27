@@ -1,5 +1,7 @@
 #!/bin/sh
 
+PROG_NAME=$(basename "$0")
+
 main() {
   validate "$@"
 
@@ -14,7 +16,7 @@ main() {
 
   if [ "$(grep -c "$rule" "$path")" -eq 0 ]; then
     echo "$rule" >> "$path"
-    sudo systemctl restart dnsmasq
+    erd --log /home/ubuntu/.log/erd.log --from "$PROG_NAME"
   else
     echo "Error: \"$(domain)\" already exists in $(basename $path)." >&2
     exit 2
