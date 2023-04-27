@@ -18,6 +18,8 @@ main() {
   parse "$@"
   eval "set -- $REST"
 
+  sleep $(( $(od -An -N1 -t u1 /dev/urandom) % $MAX_SLEEP_TIME + 1 ))
+
   while [ "$(executable)" = "false" ]; do
     # do not encompass the variables (MAX_SLEEP_TIME) with double quotes
     sleep_time=$(( $(od -An -N1 -t u1 /dev/urandom) % $MAX_SLEEP_TIME + 1 ))
