@@ -37,7 +37,7 @@ main() {
     sudo systemctl restart dnsmasq
   fi
 
-  [ "$LOG" != "" ] && echo "Restarted the daemon on $(date +'%a %b %d %r %Y') (status: $(sudo systemctl is-active dnsmasq), from: $FROM)" >> "$LOG"
+  [ "$LOG" != "" ] && echo "Restarted the daemon (date: $(date +'%a %b %d %r %Y'), count: $(cat "$EXE_COUNT_FILE"), status: $(sudo systemctl is-active dnsmasq), from: \"$FROM\")" >> "$LOG"
 }
 
 executable() {
