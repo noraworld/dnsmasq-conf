@@ -19,7 +19,9 @@ main() {
   eval "set -- $REST"
 
   if [ "$SKIP" != "1" ]; then
-    sleep $(( $(od -An -N1 -t u1 /dev/urandom) % $MAX_SLEEP_TIME + 1 ))
+    sleep_time=$(( $(od -An -N1 -t u1 /dev/urandom) % $MAX_SLEEP_TIME + 1 ))
+    echo "Waiting for $sleep_time seconds before restarting the daemon..."
+    sleep "$sleep_time"
   fi
 
   while [ "$(executable)" = "false" ]; do
