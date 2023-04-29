@@ -10,7 +10,7 @@ LAST_UPDATE_FILE="/home/ubuntu/.tmp/restart_dnsmasq_last_update"
 EXE_COUNT_FILE="/home/ubuntu/.tmp/restart_dnsmasq_exe_count"
 TIME_THRESHOLD="11"
 COUNT_THRESHOLD="1"
-MAX_SLEEP_TIME="11"
+MAX_SLEEP_TIME="10"
 XDG_RUNTIME_DIR="/run/user/$(id -u)"
 export XDG_RUNTIME_DIR # for cron
 
