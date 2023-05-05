@@ -43,7 +43,7 @@ main() {
     sudo systemctl restart dnsmasq
   fi
 
-  [ "$LOG" != "" ] && echo "Restarted the daemon (date: $(date +'%a %b %d %r %Y'), count: $(cat "$EXE_COUNT_FILE"), status: $(sudo systemctl is-active dnsmasq), from: \"$FROM\")" >> "$LOG"
+  [ "$LOG" != "" ] && log_debug_info
 }
 
 executable() {
@@ -82,6 +82,16 @@ print_debug_info() {
   echo "Current time:    $(date +%s)"
   echo "Last update:     $(cat $LAST_UPDATE_FILE)"
   echo "Execution count: $(cat $EXE_COUNT_FILE)"
+}
+
+log_debug_info() {
+  current_time=$(date +'%a %b %d %r %Y')
+  num=$(cat "$EXE_COUNT_FILE")
+  state=$(sudo systemctl is-active dnsmasq)
+
+  [ "$num" = "" ] && num="?"
+
+  echo "Restarted the daemon (date: \"$current_time\", count: \"$num\", status: \"$state\", from: \"$FROM\")" >> "$LOG"
 }
 
 # @getoptions
