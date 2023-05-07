@@ -43,7 +43,11 @@ main() {
     sudo systemctl restart dnsmasq
   fi
 
-  [ "$LOG" != "" ] && log_debug_info
+  if [ "$LOG" != "" ]; then
+    log_debug_info
+  else
+    true
+  fi
 }
 
 executable() {
