@@ -45,11 +45,13 @@ main() {
     print_debug_info "failed"
   fi
 
-  if [ "$(sudo systemctl is-active dnsmasq)" != "active" ]; then
-    sudo systemctl restart dnsmasq
-  fi
+  # temporarily disable this because it might cause the problem that the daemon fails to restart
+  # if [ "$(sudo systemctl is-active dnsmasq)" != "active" ]; then
+  #   sudo systemctl restart dnsmasq
+  # fi
 
-  if [ "$LOG" != "" ]; then
+  # output info to a log file when the daemon failed to restart, even if the --log option is not set
+  if [ "$LOG" != "" ] || [ "$(sudo systemctl is-active dnsmasq)" != "active" ]; then
     log_debug_info
   else
     true
