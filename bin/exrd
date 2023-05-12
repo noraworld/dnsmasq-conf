@@ -4,7 +4,7 @@
 # ExRD (Exclusively Restart Dnsmasq)
 # This script just restarts the Dnsmasq daemon, essentially, but keeps it from failing by maneuvering exclusively.
 
-set -eu
+set -u
 
 LAST_UPDATE_FILE="/home/ubuntu/.tmp/restart_dnsmasq_last_update"
 EXE_COUNT_FILE="/home/ubuntu/.tmp/restart_dnsmasq_exe_count"
@@ -40,9 +40,9 @@ main() {
   if [ "$(executable)" = "true" ]; then
     sudo systemctl restart dnsmasq
     update_file
-    print_debug_info "succeeded"
+    print_debug_info "true"
   else
-    print_debug_info "failed"
+    print_debug_info "false"
   fi
 
   # temporarily disable this because it might cause the problem that the daemon fails to restart
@@ -50,8 +50,9 @@ main() {
   #   sudo systemctl restart dnsmasq
   # fi
 
-  # output info to a log file when the daemon failed to restart, even if the --log option is not set
-  if [ "$LOG" != "" ] || [ "$(sudo systemctl is-active dnsmasq)" != "active" ]; then
+  # output info to a log file when the daemon failed to restart
+  if [ "$LOG" != "" ] && [ "$(sudo systemctl is-active dnsmasq)" != "active" ]; then
+    sleep 1 # to avoid "activating"
     log_debug_info
   else
     true
@@ -90,7 +91,7 @@ update_file() {
 }
 
 print_debug_info() {
-  echo "Status:          $1"
+  echo "Executable:      $1"
   echo "Current time:    $(date +%s)"
   echo "Last update:     $(cat $LAST_UPDATE_FILE)"
   echo "Execution count: $(cat $EXE_COUNT_FILE)"
