@@ -91,10 +91,26 @@ update_file() {
 }
 
 print_debug_info() {
-  echo "Executable:      $1"
+  if [ "$(sudo systemctl is-active dnsmasq)" = "active" ]; then
+    echo "Status:          \e[1;32m$(sudo systemctl is-active dnsmasq)\e[0m"
+  else
+    echo "Status:          \e[1;31m$(sudo systemctl is-active dnsmasq)\e[0m"
+  fi
+
+  if [ "$1" = "true" ]; then
+    echo "Executable:      \e[1;32m$1\e[0m"
+  else
+    echo "Executable:      \e[1;31m$1\e[0m"
+  fi
+
+  if [ "$(cat $EXE_COUNT_FILE)" = "1" ]; then
+    echo "Execution count: \e[1;32m$(cat $EXE_COUNT_FILE)\e[0m"
+  else
+    echo "Execution count: \e[1;31m$(cat $EXE_COUNT_FILE)\e[0m"
+  fi
+
   echo "Current time:    $(date +%s)"
   echo "Last update:     $(cat $LAST_UPDATE_FILE)"
-  echo "Execution count: $(cat $EXE_COUNT_FILE)"
 }
 
 log_debug_info() {
