@@ -24,7 +24,7 @@ sudo ln -s $PWD/dnsmasq/dnsmasq.priv/default   /etc/dnsmasq.priv
 sudo ln -s $PWD/dnsmasq/dnsmasq.priv/blist /etc/dnsmasq.priv
 sudo ln -s $PWD/dnsmasq/dnsmasq.priv/wlist /etc/dnsmasq.priv
 
-sudo ln -s $PWD/etc/hosts /etc
+sudo ln $PWD/etc/hosts /etc
 
 sudo systemctl enable dnsmasq
 ```
