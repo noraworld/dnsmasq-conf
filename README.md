@@ -30,15 +30,6 @@ sudo ln $PWD/etc/hosts /etc
 sudo systemctl enable dnsmasq
 ```
 
-### Step 2
-Create a new file as `dnsmasq/dnsmasq.priv/dnsv6.conf`, and write the following in it.
-
-```
-dhcp-option=option6:dns-server,[xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]
-```
-
-`xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx` is your IPv6 global unicast address assigned at your computer.
-
 ## How to check syntax
 ```
 dnsmasq --test
