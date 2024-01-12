@@ -1,4 +1,5 @@
 127.0.0.1 localhost
+127.0.1.1 ubuntu
 192.168.82.1 diary.test
 
 # The following lines are desirable for IPv6 capable hosts
