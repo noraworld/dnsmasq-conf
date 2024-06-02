@@ -2,7 +2,6 @@
 127.0.1.1 ubuntu
 192.168.82.1 diary.test
 192.168.82.1 raspap.test
-192.168.82.1 youtube.com
 
 # The following lines are desirable for IPv6 capable hosts
 ::1 ip6-localhost ip6-loopback
