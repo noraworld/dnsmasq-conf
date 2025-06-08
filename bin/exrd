@@ -6,8 +6,8 @@
 
 set -u
 
-LAST_UPDATE_FILE="/home/ubuntu/.tmp/restart_dnsmasq_last_update"
-EXE_COUNT_FILE="/home/ubuntu/.tmp/restart_dnsmasq_exe_count"
+LAST_UPDATE_FILE="/home/ubuntu/workspace/log/pi/tmp/restart_dnsmasq_last_update"
+EXE_COUNT_FILE="/home/ubuntu/workspace/log/pi/tmp/restart_dnsmasq_exe_count"
 TIME_THRESHOLD="11"
 COUNT_THRESHOLD="1"
 MAX_SLEEP_TIME="10"
