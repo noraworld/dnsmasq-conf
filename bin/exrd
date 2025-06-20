@@ -10,6 +10,7 @@ LAST_UPDATE_FILE="/home/ubuntu/workspace/log/pi/tmp/restart_dnsmasq_last_update"
 EXE_COUNT_FILE="/home/ubuntu/workspace/log/pi/tmp/restart_dnsmasq_exe_count"
 TIME_THRESHOLD="11"
 COUNT_THRESHOLD="1"
+ATTEMPT_THRESHOLD="100"
 MAX_SLEEP_TIME="10"
 XDG_RUNTIME_DIR="/run/user/$(id -u)"
 export XDG_RUNTIME_DIR # for cron
@@ -30,19 +31,30 @@ main() {
     sleep "$sleep_time"
   fi
 
-  while [ "$(executable)" = "false" ]; do
-    # do not encompass the variables (MAX_SLEEP_TIME) with double quotes
-    sleep_time=$(( $(od -An -N1 -t u1 /dev/urandom) % $MAX_SLEEP_TIME + 1 ))
-    echo "Restarting the daemon canceled because it's done many times in a row. Trying to restart the daemon in $sleep_time seconds..."
-    sleep "$sleep_time"
-  done
-
   if [ "$(executable)" = "true" ]; then
     sudo systemctl restart dnsmasq
     update_file
     print_debug_info "true"
   else
-    print_debug_info "false"
+    attempt_count=0
+
+    while [ "$attempt_count" -lt "$ATTEMPT_THRESHOLD" ]; do
+      print_debug_info "false"
+
+      # do not encompass the variables (MAX_SLEEP_TIME) with double quotes
+      sleep_time=$(( $(od -An -N1 -t u1 /dev/urandom) % $MAX_SLEEP_TIME + 1 ))
+      echo "Restarting the daemon canceled because it's done many times in a row. Trying to restart the daemon in $sleep_time seconds..."
+      sleep "$sleep_time"
+
+      if [ "$(executable)" = "true" ]; then
+        sudo systemctl restart dnsmasq
+        update_file
+        print_debug_info "true"
+        break
+      fi
+
+      attempt_count=$(( attempt_count + 1 ))
+    done
   fi
 
   # temporarily disable this because it might cause the problem that the daemon fails to restart
