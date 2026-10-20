@@ -1,1 +1,7 @@
 dnsmasq/dnsmasq.priv
+
+!sql/firefox_history.sql
+sql/*.md
+sql/*.sqlite
+sql/*.sqlite-shm
+sql/*.sqlite-wal
