@@ -47,8 +47,8 @@ dnsmasq --test
 ```shell
 mkdir reports
 cp -i $HOME/Library/Application\ Support/Firefox/Profiles/*.default-release/places.sqlite reports/places_$(date '+%Y%m%d%H%M%S').sqlite
-sqlite3 -noheader reports/places_*.sqlite < sql/firefox_history.sql > reports/history.md
-head reports/history.md
+sqlite3 -noheader reports/places_*.sqlite < sql/firefox_history.sql > reports/history_$(date '+%Y%m%d%H%M%S').md
+head reports/history_*.md
 ```
 
 #### Reset
@@ -63,7 +63,7 @@ list of links containing unblocked domains. Requires Python 3.7 or later;
 no third-party packages are needed.
 
 ```shell
-bin/extract-unfiltered reports/history.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/history_unfiltered.html"
+bin/extract-unfiltered reports/history_*.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/history_unfiltered.html"
 ```
 
 ```shell
