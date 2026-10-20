@@ -35,6 +35,27 @@ sudo systemctl enable dnsmasq
 dnsmasq --test
 ```
 
+## Export Firefox history in Markdown style
+### Format
+```markdown
+* [Google](<https://www.google.com>)
+* [Yahoo!](<https://www.yahoo.co.jp>)
+```
+
+### Usage
+#### Export
+```shell
+mkdir reports
+cp -i $HOME/Library/Application\ Support/Firefox/Profiles/*.default-release/places.sqlite reports/places_$(date '+%Y%m%d%H%M%S').sqlite
+sqlite3 -noheader reports/places_*.sqlite < sql/firefox_history.sql > reports/history.md
+head reports/history.md
+```
+
+#### Reset
+```shell
+rm -fr reports
+```
+
 ## Find links not blocked by Dnsmasq
 
 `bin/extract-unfiltered` reads a UTF-8 Markdown/text file and writes an HTML
