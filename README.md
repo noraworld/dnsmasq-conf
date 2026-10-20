@@ -70,6 +70,10 @@ bin/extract-unfiltered reports/history.md --dnsmasq-dir="dnsmasq,~/Workspace/env
 bin/extract-unfiltered ~/Workspace/bookmarks/bookmarks_hero_firefox.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/unfiltered.html"
 ```
 
+```shell
+open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-conf/reports/unfiltered.html"
+```
+
 - `--dnsmasq-dir` is required. All `.conf` files in the comma-separated
   directories are read recursively, including directories reached through
   symbolic links. Relative paths use the current working directory; absolute
