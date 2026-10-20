@@ -62,6 +62,10 @@ rm -fr reports
 list of links containing unblocked domains. Requires Python 3.7 or later;
 no third-party packages are needed.
 
+### Usage
+#### Extract unfiltered links in Firefox history
+You need to dump the Firefox history using [Export Firefox history in Markdown style](#export-firefox-history-in-markdown-style) before performing the commands below.
+
 ```shell
 bin/extract-unfiltered reports/history_*.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/history_unfiltered.html"
 ```
@@ -70,6 +74,7 @@ bin/extract-unfiltered reports/history_*.md --dnsmasq-dir="dnsmasq,~/Workspace/e
 open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-conf/reports/history_unfiltered.html"
 ```
 
+#### Extract unfiltered links in Firefox bookmark
 ```shell
 bin/extract-unfiltered ~/Workspace/bookmarks/bookmarks_hero_firefox.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/bookmark_unfiltered.html"
 ```
@@ -78,6 +83,7 @@ bin/extract-unfiltered ~/Workspace/bookmarks/bookmarks_hero_firefox.md --dnsmasq
 open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-conf/reports/bookmark_unfiltered.html"
 ```
 
+### Options and specifications
 - `--dnsmasq-dir` is required. All `.conf` files in the comma-separated
   directories are read recursively, including directories reached through
   symbolic links. Relative paths use the current working directory; absolute
@@ -104,6 +110,7 @@ open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-con
   is treated as a directory and receives `unfiltered.html`. Missing parent
   directories are created automatically.
 
+### Tests
 Run the regression tests with:
 
 ```shell
