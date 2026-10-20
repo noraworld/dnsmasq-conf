@@ -202,7 +202,7 @@ def extract_rows(text, blocked):
             if key in seen:
                 continue
             seen.add(key)
-            row = '<li>[<code>{}</code>] <a href="{}" target="_blank">{}</a></li>'.format(
+            row = '<li>[ <code>{}</code> ] <a href="{}" target="_blank">{}</a></li>'.format(
                 escape(domain), escape(href, quote=True), escape(title))
             rows.append((tuple(reversed(domain.split("."))), row))
     # Compare labels from the root inward to keep parent domains and their

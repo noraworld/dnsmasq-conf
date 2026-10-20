@@ -51,7 +51,7 @@ class ExtractionTests(unittest.TestCase):
                 rows = extract.extract_rows(
                     "[{}](https://www.google.com:443/path?q=1)".format(title), set())
                 self.assertEqual(rows, [
-                    '<li>[<code>google.com</code>] '
+                    '<li>[ <code>google.com</code> ] '
                     '<a href="https://www.google.com:443/path?q=1" '
                     'target="_blank">www.google.com</a></li>'
                 ])
@@ -60,7 +60,7 @@ class ExtractionTests(unittest.TestCase):
         rows = extract.extract_rows(
             "https://t.co/example [](<https://www.google.com>)", {"google.com"})
         self.assertEqual(rows, [
-            '<li>[<code>t.co</code>] <a href="https://www.google.com" '
+            '<li>[ <code>t.co</code> ] <a href="https://www.google.com" '
             'target="_blank">www.google.com</a></li>'
         ])
 
@@ -68,7 +68,7 @@ class ExtractionTests(unittest.TestCase):
         text = "[foo [https://t.co/ABCDEF](https://t.co/ABCDEF) bar](https://www.google.com/foo/bar)"
         rows = extract.extract_rows(text, {"google.com"})
         self.assertEqual(rows, [
-            '<li>[<code>t.co</code>] <a href="https://www.google.com/foo/bar" '
+            '<li>[ <code>t.co</code> ] <a href="https://www.google.com/foo/bar" '
             'target="_blank">foo [https://t.co/ABCDEF](https://t.co/ABCDEF) bar</a></li>'
         ])
         rows = extract.extract_rows(text, set())
