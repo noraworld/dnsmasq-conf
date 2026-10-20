@@ -96,6 +96,10 @@ open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-con
 - Each containing link produces at most one row per displayed domain per line.
   The display omits a leading `www.`; matching still uses the full hostname.
   Titles are preserved as text and all HTML values are escaped.
+- Rows are sorted by the displayed domain, comparing labels from right to left
+  (for example, `com`, then `google`, then `drive`). This keeps parent domains
+  and their subdomains together, including domains ending in `co.jp`.
+  Rows with the same displayed domain retain their input order.
 - `--out` defaults to `./unfiltered.html`. A path without a filename extension
   is treated as a directory and receives `unfiltered.html`. Missing parent
   directories are created automatically.

@@ -16,6 +16,35 @@ LOADER.exec_module(extract)
 
 
 class ExtractionTests(unittest.TestCase):
+    def test_sort_groups_domains_and_nested_subdomains(self):
+        domains = [
+            "mail.yahoo.co.jp", "drive.google.com", "github.com",
+            "www.google.com", "search.yahoo.co.jp", "docs.google.com",
+            "example.co.jp", "a.drive.google.com",
+        ]
+        text = "\n".join("[link](https://{})".format(domain) for domain in domains)
+        rows = extract.extract_rows(text, set())
+        actual = [row.split("<code>")[1].split("</code>")[0] for row in rows]
+        self.assertEqual(actual, [
+            "github.com", "google.com", "docs.google.com", "drive.google.com",
+            "a.drive.google.com", "example.co.jp", "mail.yahoo.co.jp",
+            "search.yahoo.co.jp",
+        ])
+
+    def test_sort_uses_code_domain_and_preserves_order_within_domain(self):
+        text = (
+            "[https://z.test](https://blocked.test/first)\n"
+            "[Z](https://a.test/z)\n"
+            "[A](https://a.test/a)\n"
+            "[https://b.test](https://blocked.test/last)\n"
+        )
+        rows = extract.extract_rows(text, {"blocked.test"})
+        self.assertIn('href="https://a.test/z"', rows[0])
+        self.assertIn('href="https://a.test/a"', rows[1])
+        self.assertIn("<code>b.test</code>", rows[2])
+        self.assertIn('href="https://blocked.test/last"', rows[2])
+        self.assertIn("<code>z.test</code>", rows[3])
+
     def test_empty_title_uses_destination_hostname(self):
         for title in ("", " \t "):
             with self.subTest(title=title):
@@ -68,8 +97,8 @@ class ExtractionTests(unittest.TestCase):
         text = "(https://example.com:8443/wiki/Test_(thing)) https://[::1]/x"
         rows = extract.extract_rows(text, set())
         self.assertEqual(len(rows), 2)
-        self.assertIn('href="https://example.com:8443/wiki/Test_(thing)"', rows[0])
-        self.assertIn("<code>::1</code>", rows[1])
+        self.assertIn("<code>::1</code>", rows[0])
+        self.assertIn('href="https://example.com:8443/wiki/Test_(thing)"', rows[1])
 
     def test_html_escaping(self):
         rows = extract.extract_rows('[<script>& "title"](https://a.test/?a=1&b=2)', set())

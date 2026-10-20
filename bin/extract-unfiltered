@@ -202,9 +202,13 @@ def extract_rows(text, blocked):
             if key in seen:
                 continue
             seen.add(key)
-            rows.append('<li>[<code>{}</code>] <a href="{}" target="_blank">{}</a></li>'
-                        .format(escape(domain), escape(href, quote=True), escape(title)))
-    return rows
+            row = '<li>[<code>{}</code>] <a href="{}" target="_blank">{}</a></li>'.format(
+                escape(domain), escape(href, quote=True), escape(title))
+            rows.append((tuple(reversed(domain.split("."))), row))
+    # Compare labels from the root inward to keep parent domains and their
+    # subdomains together. Stable sorting preserves input order for equal domains.
+    rows.sort(key=lambda item: item[0])
+    return [row for _, row in rows]
 
 
 def expanded_path(value):
