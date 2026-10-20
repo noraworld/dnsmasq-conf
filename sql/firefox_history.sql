@@ -6,12 +6,14 @@
 --   [Yahoo!](<https://www.yahoo.co.jp>)
 --
 -- Usage:
---   $ cd sql
---   $ cp -i $HOME/Library/Application\ Support/Firefox/Profiles/*.default-release/places.sqlite places_$(date '+%Y%m%d%H%M%S').sqlite
---   $ sqlite3 -noheader places_*.sqlite < firefox_history.sql > history.md
---   $ head history.md
+--   Export:
+--     $ mkdir reports
+--     $ cp -i $HOME/Library/Application\ Support/Firefox/Profiles/*.default-release/places.sqlite reports/places_$(date '+%Y%m%d%H%M%S').sqlite
+--     $ sqlite3 -noheader reports/places_*.sqlite < sql/firefox_history.sql > reports/history.md
+--     $ head reports/history.md
 --
---   $ rm history.md places_*.sqlite*     # when you want to reset
+--   Reset:
+--     $ rm -fr reports
 --
 -- Reference:
 --   https://chatgpt.com/c/6ad4e7f8-4440-83e8-ba7d-ca5956527d0b

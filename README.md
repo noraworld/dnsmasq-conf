@@ -42,9 +42,11 @@ list of links containing unblocked domains. Requires Python 3.7 or later;
 no third-party packages are needed.
 
 ```shell
-bin/extract-unfiltered links.md \
-  --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" \
-  --out="reports/unfiltered.html"
+bin/extract-unfiltered reports/history.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/unfiltered.html"
+```
+
+```shell
+bin/extract-unfiltered ~/Workspace/bookmarks/bookmarks_hero_firefox.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/unfiltered.html"
 ```
 
 - `--dnsmasq-dir` is required. All `.conf` files in the comma-separated
