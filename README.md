@@ -63,15 +63,19 @@ list of links containing unblocked domains. Requires Python 3.7 or later;
 no third-party packages are needed.
 
 ```shell
-bin/extract-unfiltered reports/history.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/unfiltered.html"
+bin/extract-unfiltered reports/history.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/history_unfiltered.html"
 ```
 
 ```shell
-bin/extract-unfiltered ~/Workspace/bookmarks/bookmarks_hero_firefox.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/unfiltered.html"
+open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-conf/reports/history_unfiltered.html"
 ```
 
 ```shell
-open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-conf/reports/unfiltered.html"
+bin/extract-unfiltered ~/Workspace/bookmarks/bookmarks_hero_firefox.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/bookmark_unfiltered.html"
+```
+
+```shell
+open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-conf/reports/bookmark_unfiltered.html"
 ```
 
 - `--dnsmasq-dir` is required. All `.conf` files in the comma-separated
