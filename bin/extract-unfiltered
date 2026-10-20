@@ -1,0 +1,260 @@
+#!/usr/bin/env python3
+"""Extract links containing domains absent from dnsmasq block rules."""
+
+import argparse
+from dataclasses import dataclass
+from html import escape
+import ipaddress
+import os
+from pathlib import Path
+import re
+import sys
+from urllib.parse import urlsplit
+
+
+URL_START = re.compile(r"[a-z][a-z0-9+.-]*://", re.IGNORECASE)
+
+
+def normalize_domain(domain):
+    domain = domain.strip().strip(".").lower()
+    try:
+        return str(ipaddress.ip_address(domain))
+    except ValueError:
+        return domain.encode("idna").decode("ascii")
+
+
+def urls(text):
+    """Find URLs in plain text, keeping balanced parentheses in URL paths."""
+    for match in URL_START.finditer(text):
+        start = match.start()
+        end = match.end()
+        parentheses = 0
+        # IPv6 literals may contain square brackets in the authority.
+        authority_end = end
+        while authority_end < len(text) and text[authority_end] not in "/?# \t<>\"'`\r\n":
+            authority_end += 1
+        ipv6_end = text.find("]", end, authority_end) if text[end:end + 1] == "[" else -1
+        while end < len(text):
+            char = text[end]
+            if char.isspace() or char in '<>"\'`':
+                break
+            if char in "[]" and not (end <= ipv6_end):
+                break
+            if char == "(":
+                parentheses += 1
+            elif char == ")":
+                if not parentheses:
+                    break
+                parentheses -= 1
+            end += 1
+        url = text[start:end].rstrip(".,;!。、，；！")
+        try:
+            host = urlsplit(url).hostname
+            if host:
+                yield start, start + len(url), url, normalize_domain(host)
+        except (ValueError, UnicodeError):
+            continue
+
+
+def closing_delimiter(text, start, opening, closing):
+    depth = 0
+    index = start
+    while index < len(text):
+        if text[index] == "\\":
+            index += 2
+            continue
+        if text[index] == opening:
+            depth += 1
+        elif text[index] == closing:
+            depth -= 1
+            if depth == 0:
+                return index
+        index += 1
+    return None
+
+
+@dataclass
+class Link:
+    start: int
+    end: int
+    title: str
+    href: str
+
+
+def markdown_links(line):
+    """Read outermost inline links, including nested brackets in their titles."""
+    links = []
+    index = 0
+    while index < len(line):
+        if line[index] == "\\":
+            index += 2
+            continue
+        if line[index] != "[":
+            index += 1
+            continue
+        title_end = closing_delimiter(line, index, "[", "]")
+        if title_end is None or line[title_end + 1:title_end + 2] != "(":
+            index += 1
+            continue
+        end = closing_delimiter(line, title_end + 1, "(", ")")
+        if end is None:
+            index += 1
+            continue
+        destination = line[title_end + 2:end].strip()
+        candidates = list(urls(destination))
+        if not candidates:
+            index += 1
+            continue
+        # Also accept a destination wrapped as [URL](URL), as in the example.
+        nested = markdown_links(destination) if destination.startswith("[") else []
+        href = nested[0].href if nested else candidates[0][2]
+        links.append(Link(index, end + 1, line[index + 1:title_end], href))
+        index = end + 1
+    return links
+
+
+def config_files(directories):
+    """Follow directory symlinks, but avoid cycles and duplicate files."""
+    visited_dirs = set()
+    visited_files = set()
+    for directory in directories:
+        if not directory.is_dir():
+            raise ValueError("Dnsmasq directory does not exist: {}".format(directory))
+        for root, dirs, files in os.walk(directory, followlinks=True, onerror=raise_error):
+            resolved = Path(root).resolve()
+            if resolved in visited_dirs:
+                dirs[:] = []
+                continue
+            visited_dirs.add(resolved)
+            dirs.sort()
+            for name in sorted(files):
+                path = Path(root) / name
+                if path.suffix == ".conf" and path.resolve() not in visited_files:
+                    visited_files.add(path.resolve())
+                    yield path
+
+
+def raise_error(error):
+    raise error
+
+
+def blocked_domains(directories):
+    blocked = set()
+    for path in config_files(directories):
+        for number, raw in enumerate(path.read_text(encoding="utf-8-sig").splitlines(), 1):
+            line = raw.split("#", 1)[0].strip()
+            match = re.fullmatch(r"address\s*=\s*/(.*)", line)
+            if not match:
+                continue
+            parts = match.group(1).split("/")
+            if len(parts) < 2:
+                continue
+            domains, address = parts[:-1], parts[-1].strip()
+            if address:
+                try:
+                    ip = ipaddress.ip_address(address)
+                except ValueError:
+                    continue
+                # Normal address mappings (e.g. an internal server) are not blocks.
+                if not (ip.is_unspecified or ip.is_loopback):
+                    continue
+            for domain in domains:
+                domain = domain.strip()
+                if not domain or domain == "#":
+                    continue
+                try:
+                    blocked.add(normalize_domain(domain))
+                except UnicodeError as error:
+                    raise ValueError("{}:{}: invalid domain {!r}".format(
+                        path, number, domain)) from error
+    return blocked
+
+
+def is_blocked(host, blocked):
+    try:
+        ipaddress.ip_address(host)
+        return host in blocked
+    except ValueError:
+        pass
+    labels = host.split(".")
+    return any(".".join(labels[index:]) in blocked for index in range(len(labels)))
+
+
+def extract_rows(text, blocked):
+    rows = []
+    for line in text.splitlines():
+        links = markdown_links(line)
+        seen = set()
+        for start, end, url, host in urls(line):
+            if is_blocked(host, blocked):
+                continue
+            owner = next((link for link in links
+                          if link.start <= start and end <= link.end), None)
+            # A URL elsewhere on a line with exactly one link belongs to that row.
+            if owner is None and len(links) == 1:
+                owner = links[0]
+            href = owner.href if owner else url
+            title = owner.title if owner else line.strip()
+            if not title.strip():
+                title = urlsplit(href).hostname or href
+            domain = host[4:] if host.startswith("www.") else host
+            key = (owner.start if owner else start, domain)
+            if key in seen:
+                continue
+            seen.add(key)
+            row = '<li>[ <code>{}</code> ] <a href="{}" target="_blank">{}</a></li>'.format(
+                escape(domain), escape(href, quote=True), escape(title))
+            rows.append((tuple(reversed(domain.split("."))), row))
+    # Compare labels from the root inward to keep parent domains and their
+    # subdomains together. Stable sorting preserves input order for equal domains.
+    rows.sort(key=lambda item: item[0])
+    return [row for _, row in rows]
+
+
+def expanded_path(value):
+    # Accept both quoted "~/" and the explicitly escaped "\\~/" spelling.
+    if value.startswith("\\~"):
+        value = value[1:]
+    return Path(value).expanduser()
+
+
+def output_path(value):
+    path = expanded_path(value)
+    return path if path.suffix and not value.endswith(("/", os.sep)) else path / "unfiltered.html"
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("input", help="UTF-8 Markdown or plain-text file")
+    parser.add_argument("--dnsmasq-dir", required=True,
+                        help="comma-separated directories; recursively reads *.conf")
+    parser.add_argument("--out", default="unfiltered.html",
+                        help="output file or directory (default: ./unfiltered.html)")
+    args = parser.parse_args(argv)
+    try:
+        names = [name.strip() for name in args.dnsmasq_dir.split(",")]
+        if not all(names):
+            raise ValueError("--dnsmasq-dir must contain nonempty directory names")
+        directories = [expanded_path(name) for name in names]
+        source = expanded_path(args.input)
+        destination = output_path(args.out)
+        protected_paths = {source.resolve()}
+        protected_paths.update(path.resolve() for path in config_files(directories))
+        if destination.resolve() in protected_paths:
+            raise ValueError("Output must not overwrite the input or a configuration file")
+        rows = extract_rows(source.read_text(encoding="utf-8-sig"),
+                            blocked_domains(directories))
+        document = '<!doctype html>\n<html lang="ja">\n<meta charset="utf-8">\n'
+        document += "<title>Unfiltered links</title>\n<body>\n<ul>\n"
+        document += "\n".join(rows)
+        document += "\n</ul>\n</body>\n</html>\n"
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text(document, encoding="utf-8")
+    except (OSError, ValueError, UnicodeError) as error:
+        parser.exit(1, "error: {}\n".format(error))
+    print("Wrote {} link(s) to {}".format(len(rows), destination))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
