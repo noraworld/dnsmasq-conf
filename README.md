@@ -65,7 +65,6 @@ rm -fr reports
 
 
 ## Find links not blocked by Dnsmasq
-
 `bin/extract-unfiltered` reads a UTF-8 Markdown/text file and writes an HTML
 list of links containing unblocked domains. Requires Python 3.7 or later;
 no third-party packages are needed.
