@@ -1,6 +1,8 @@
 # dnsmasq-conf
 Dnsmasq config files.
 
+
+
 ## Setup
 ### Step 1
 Execute the following commands.
@@ -30,10 +32,14 @@ sudo ln $PWD/etc/hosts /etc
 sudo systemctl enable dnsmasq
 ```
 
+
+
 ## How to check syntax
 ```
 dnsmasq --test
 ```
+
+
 
 ## Export Firefox history in Markdown style
 ### Format
@@ -55,6 +61,8 @@ head reports/history_*.md
 ```shell
 rm -fr reports
 ```
+
+
 
 ## Find links not blocked by Dnsmasq
 
