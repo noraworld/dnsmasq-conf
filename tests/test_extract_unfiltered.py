@@ -16,6 +16,25 @@ LOADER.exec_module(extract)
 
 
 class ExtractionTests(unittest.TestCase):
+    def test_empty_title_uses_destination_hostname(self):
+        for title in ("", " \t "):
+            with self.subTest(title=title):
+                rows = extract.extract_rows(
+                    "[{}](https://www.google.com:443/path?q=1)".format(title), set())
+                self.assertEqual(rows, [
+                    '<li>[<code>google.com</code>] '
+                    '<a href="https://www.google.com:443/path?q=1" '
+                    'target="_blank">www.google.com</a></li>'
+                ])
+
+    def test_empty_title_uses_destination_not_other_url_on_line(self):
+        rows = extract.extract_rows(
+            "https://t.co/example [](<https://www.google.com>)", {"google.com"})
+        self.assertEqual(rows, [
+            '<li>[<code>t.co</code>] <a href="https://www.google.com" '
+            'target="_blank">www.google.com</a></li>'
+        ])
+
     def test_nested_title_urls_use_outer_destination(self):
         text = "[foo [https://t.co/ABCDEF](https://t.co/ABCDEF) bar](https://www.google.com/foo/bar)"
         rows = extract.extract_rows(text, {"google.com"})

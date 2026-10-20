@@ -195,6 +195,8 @@ def extract_rows(text, blocked):
                 owner = links[0]
             href = owner.href if owner else url
             title = owner.title if owner else line.strip()
+            if not title.strip():
+                title = urlsplit(href).hostname or href
             domain = host[4:] if host.startswith("www.") else host
             key = (owner.start if owner else start, domain)
             if key in seen:
