@@ -306,6 +306,7 @@ def main(argv=None):
         rows = extract_rows(source.read_text(encoding="utf-8-sig"),
                             blocked_domains(directories))
         document = '<!doctype html>\n<html lang="ja">\n<meta charset="utf-8">\n'
+        document += '<meta name="color-scheme" content="light dark">\n'
         document += "<title>Unfiltered links</title>\n<body>\n<ul>\n"
         document += "\n".join(rows)
         document += "\n</ul>\n</body>\n</html>\n"
