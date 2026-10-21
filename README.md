@@ -106,13 +106,33 @@ open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-con
   the outer link's destination. Separate links on one line keep their own
   destinations. A URL outside Markdown links uses the line's sole link when
   present; otherwise it uses its own URL and the line as its title.
-- Each containing link produces at most one row per displayed domain per line.
-  The display omits a leading `www.`; matching still uses the full hostname.
-  Titles are preserved as text and all HTML values are escaped.
-- Rows are sorted by the displayed domain, comparing labels from right to left
+- Each containing link produces one row if any associated URL is unblocked.
+  All associated domains remain in its rule suggestions, so multiple unblocked
+  domains do not produce identical copies of the row. Separate input links
+  (including identical links on different lines) are not merged.
+  The `[ ... ]` section contains `http`, `https`, `apex`, and `subdomain`
+  shortcuts in that order. The first two preserve the destination's path,
+  query, fragment, and port, changing only its scheme. The latter two use
+  HTTP and only the apex/full hostname (no path, credentials, or port).
+- The `( ... )` section contains unique `address=/domain/` strings, first for
+  the destination's apex and full hostname, then for URLs in its title.
+  Already-blocked domains are included here too. `www` is retained in the
+  full hostname. A URL that is already an apex produces only one rule.
+  The final link preserves the original destination and title and has no
+  `target` attribute; empty titles use the destination hostname instead.
+  All HTML values are escaped. Generated URLs are not fetched or validated.
+- Apex detection uses the bundled [Public Suffix List](https://publicsuffix.org/list/)
+  in `bin/data/public_suffix_list.dat`, including its private suffix section
+  (for example, `project.github.io` is an apex). Keep this file alongside the
+  script when copying it. It retains its MPL-2.0 notice and snapshot version;
+  update it from https://publicsuffix.org/list/public_suffix_list.dat as needed.
+  No network access or external Python packages are required at runtime.
+  IP addresses and single-label hosts are retained as-is.
+- Rows are sorted by their unblocked domains, comparing labels from right to left
   (for example, `com`, then `google`, then `drive`). This keeps parent domains
   and their subdomains together, including domains ending in `co.jp`.
-  Rows with the same displayed domain retain their input order.
+  A leading `www.` is ignored for sorting. If a row has multiple unblocked
+  domains, its first domain in this sort order is used. Ties retain input order.
 - `--out` defaults to `./unfiltered.html`. A path without a filename extension
   is treated as a directory and receives `unfiltered.html`. Missing parent
   directories are created automatically.

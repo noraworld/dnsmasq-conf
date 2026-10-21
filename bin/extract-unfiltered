@@ -3,6 +3,7 @@
 
 import argparse
 from dataclasses import dataclass
+from functools import lru_cache
 from html import escape
 import ipaddress
 import os
@@ -180,31 +181,91 @@ def is_blocked(host, blocked):
     return any(".".join(labels[index:]) in blocked for index in range(len(labels)))
 
 
+@lru_cache(maxsize=1)
+def suffix_rules():
+    """Load the bundled PSL, including private suffixes, without network access."""
+    rules = set()
+    path = Path(__file__).resolve().parent / "data" / "public_suffix_list.dat"
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("//"):
+            prefix = "!" if line.startswith("!") else "*." if line.startswith("*.") else ""
+            rules.add(prefix + normalize_domain(line[len(prefix):]))
+    return rules
+
+
+def apex_domain(host):
+    host = normalize_domain(host)
+    try:
+        ipaddress.ip_address(host)
+        return host
+    except ValueError:
+        pass
+    labels = host.split(".")
+    rules = suffix_rules()
+    suffix_length = 1  # PSL default rule: *
+    for index in range(len(labels)):
+        suffix = ".".join(labels[index:])
+        if "!" + suffix in rules:
+            suffix_length = len(labels) - index - 1
+            break
+        if suffix in rules:
+            suffix_length = max(suffix_length, len(labels) - index)
+        if index > 0 and "*." + suffix in rules:
+            suffix_length = max(suffix_length, len(labels) - index + 1)
+    return ".".join(labels[-(suffix_length + 1):])
+
+
+def render_row(href, title, hosts):
+    host = normalize_domain(urlsplit(href).hostname)
+    apex = apex_domain(host)
+
+    def root_url(domain):
+        return "http://" + ("[{}]".format(domain) if ":" in domain else domain)
+
+    # Replace only the scheme; preserve the original path, query, and fragment.
+    remainder = href.split(":", 1)[1]
+    shortcuts = [("http", "http:" + remainder), ("https", "https:" + remainder),
+                 ("apex", root_url(apex)), ("subdomain", root_url(host))]
+    links = " / ".join('<code><a href="{}" target="_blank">{}</a></code>'.format(
+        escape(url, quote=True), label) for label, url in shortcuts)
+    domains = dict.fromkeys(domain for host in hosts for domain in (apex_domain(host), host))
+    rules = " / ".join("<code>address=/{}/</code>".format(escape(domain))
+                       for domain in domains)
+    return '<li>[ {} ] ( {} ) <a href="{}">{}</a></li>'.format(
+        links, rules, escape(href, quote=True), escape(title))
+
+
 def extract_rows(text, blocked):
     rows = []
     for line in text.splitlines():
         links = markdown_links(line)
-        seen = set()
+        groups = {}
         for start, end, url, host in urls(line):
-            if is_blocked(host, blocked):
-                continue
             owner = next((link for link in links
                           if link.start <= start and end <= link.end), None)
             # A URL elsewhere on a line with exactly one link belongs to that row.
             if owner is None and len(links) == 1:
                 owner = links[0]
-            href = owner.href if owner else url
-            title = owner.title if owner else line.strip()
+            key = owner.start if owner else start
+            if key not in groups:
+                groups[key] = (owner.href if owner else url,
+                               owner.title if owner else line.strip(), [])
+            groups[key][2].append(host)
+        for href, title, associated_hosts in groups.values():
+            host = normalize_domain(urlsplit(href).hostname)
+            hosts = list(dict.fromkeys([host] + [item[3] for item in urls(title)]
+                                      + associated_hosts))
+            unblocked = [host for host in associated_hosts if not is_blocked(host, blocked)]
+            if not unblocked:
+                continue
             if not title.strip():
                 title = urlsplit(href).hostname or href
-            domain = host[4:] if host.startswith("www.") else host
-            key = (owner.start if owner else start, domain)
-            if key in seen:
-                continue
-            seen.add(key)
-            row = '<li>[ <code>{}</code> ] <a href="{}" target="_blank">{}</a></li>'.format(
-                escape(domain), escape(href, quote=True), escape(title))
-            rows.append((tuple(reversed(domain.split("."))), row))
+            # All associated hosts are already included in the rendered row.
+            # Emit it once, using the earliest unblocked domain as its sort key.
+            key = min(tuple(reversed((host[4:] if host.startswith("www.") else host).split(".")))
+                      for host in unblocked)
+            rows.append((key, render_row(href, title, hosts)))
     # Compare labels from the root inward to keep parent domains and their
     # subdomains together. Stable sorting preserves input order for equal domains.
     rows.sort(key=lambda item: item[0])
