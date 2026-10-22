@@ -15,6 +15,44 @@ from urllib.parse import urlsplit
 
 URL_START = re.compile(r"[a-z][a-z0-9+.-]*://", re.IGNORECASE)
 
+CLICK_HIGHLIGHT_STYLE = """<style>
+a.last-clicked {
+  color: #172554;
+  background-color: #fef08a;
+  outline: 2px solid #a16207;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+@media (prefers-color-scheme: dark) {
+  a.last-clicked {
+    color: #fef9c3;
+    background-color: #713f12;
+    outline-color: #facc15;
+  }
+}
+@media (forced-colors: active) {
+  a.last-clicked { outline-color: Highlight; }
+}
+</style>
+"""
+
+CLICK_HIGHLIGHT_SCRIPT = """<script>
+(() => {
+  let lastClicked = null;
+  function markLink(event) {
+    if (event.type === 'auxclick' && event.button !== 1) return;
+    const link = event.target.closest('a[href]');
+    if (!link) return;
+    if (lastClicked) lastClicked.classList.remove('last-clicked');
+    link.classList.add('last-clicked');
+    lastClicked = link;
+  }
+  document.addEventListener('click', markLink);
+  document.addEventListener('auxclick', markLink);
+})();
+</script>
+"""
+
 
 def normalize_domain(domain):
     domain = domain.strip().strip(".").lower()
@@ -307,9 +345,10 @@ def main(argv=None):
                             blocked_domains(directories))
         document = '<!doctype html>\n<html lang="ja">\n<meta charset="utf-8">\n'
         document += '<meta name="color-scheme" content="light dark">\n'
+        document += CLICK_HIGHLIGHT_STYLE
         document += "<title>Unfiltered links</title>\n<body>\n<ul>\n"
         document += "\n".join(rows)
-        document += "\n</ul>\n</body>\n</html>\n"
+        document += "\n</ul>\n" + CLICK_HIGHLIGHT_SCRIPT + "</body>\n</html>\n"
         destination.parent.mkdir(parents=True, exist_ok=True)
         destination.write_text(document, encoding="utf-8")
     except (OSError, ValueError, UnicodeError) as error:

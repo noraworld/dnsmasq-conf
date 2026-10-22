@@ -136,6 +136,10 @@ open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-con
 - `--out` defaults to `./unfiltered.html`. A path without a filename extension
   is treated as a directory and receives `unfiltered.html`. Missing parent
   directories are created automatically.
+- The last clicked link is highlighted with a background and outline in both
+  light and dark mode. Normal clicks, keyboard activation, and middle-clicks
+  update the highlight without changing navigation behavior. It remains when
+  returning from another tab; reloading the report resets it.
 
 ### Tests
 Run the regression tests with:
