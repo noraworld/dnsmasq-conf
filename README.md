@@ -103,6 +103,17 @@ bin/extract-unfiltered reports/history_*.md --dnsmasq-dir="dnsmasq,~/Workspace/e
 open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-conf/reports/history_unfiltered.html"
 ```
 
+#### Extract unfiltered links in private diary
+You need to gather all the links in a single file using [Collect links from Markdown and text files](#collect-links-from-markdown-and-text-files) before performing the commands below.
+
+```shell
+bin/extract-unfiltered reports/diary.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/diary_unfiltered.html"
+```
+
+```shell
+open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-conf/reports/diary_unfiltered.html"
+```
+
 #### Extract unfiltered links in Firefox bookmark
 ```shell
 bin/extract-unfiltered ~/Workspace/bookmarks/bookmarks_hero_firefox.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/bookmark_unfiltered.html"
