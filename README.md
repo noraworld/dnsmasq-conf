@@ -166,3 +166,5 @@ and HTML `href` attributes are included. Bare URLs use the URL as both title
 and destination. The output defaults to `./links.md`; `--out` paths with an
 extension are treated as filenames, while paths without one are treated as
 directories and receive `links.md`. Missing output directories are created.
+Files that cannot be read as UTF-8 text or otherwise fail to read are reported
+to standard error and skipped; processing continues with the remaining files.

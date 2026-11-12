@@ -162,7 +162,12 @@ def main():
             try:
                 content = path.read_text(encoding="utf-8")
             except UnicodeDecodeError as error:
-                raise ValueError("Cannot read as UTF-8 text: {}".format(path)) from error
+                print("{}: skipping {}: cannot read as UTF-8 text ({})".format(
+                    parser.prog, path, error), file=sys.stderr)
+                continue
+            except OSError as error:
+                print("{}: skipping {}: {}".format(parser.prog, path, error), file=sys.stderr)
+                continue
             for line in content.splitlines():
                 rows.extend("* [{}]({})".format(escape_title(title or href), escape_destination(href))
                             for title, href in line_links(line))
