@@ -70,6 +70,7 @@ links as a Markdown bullet list. It uses only Python's standard library.
 
 ### Usage
 ```shell
+git -C $HOME/Workspace/private-diary pull --ff-only origin main
 bin/extract-markdown-links $HOME/Workspace/private-diary/_posts --out="reports/diary.md"
 ```
 
@@ -115,6 +116,7 @@ open -n -a "Firefox" --args --private-window "file://$HOME/Workspace/dnsmasq-con
 
 #### Extract unfiltered links in Firefox bookmark
 ```shell
+git -C $HOME/Workspace/bookmarks pull --ff-only origin main
 bin/extract-unfiltered ~/Workspace/bookmarks/bookmarks_hero_firefox.md --dnsmasq-dir="dnsmasq,~/Workspace/envsman/raspberrypi/dnsmasq/dnsmasq.priv" --out="reports/bookmark_unfiltered.html"
 ```
 
