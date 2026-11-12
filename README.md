@@ -147,3 +147,22 @@ Run the regression tests with:
 ```shell
 python3 -m unittest discover -s tests
 ```
+
+
+## Collect links from Markdown and text files
+`bin/extract-markdown-links` reads files and directories and writes all found
+links as a Markdown bullet list. It uses only Python's standard library.
+
+### Usage
+```shell
+bin/extract-markdown-links notes.md,docs/ references.txt --out=reports/links.md
+bin/extract-markdown-links docs --out=reports
+```
+
+Arguments may be files or directories, and each argument may contain
+comma-separated paths. Directories are searched recursively. File extensions
+are ignored; every file is read as UTF-8 text. Markdown inline links, bare URLs,
+and HTML `href` attributes are included. Bare URLs use the URL as both title
+and destination. The output defaults to `./links.md`; `--out` paths with an
+extension are treated as filenames, while paths without one are treated as
+directories and receive `links.md`. Missing output directories are created.

@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+"""Collect links from text/Markdown files into a Markdown list."""
+
+import argparse
+from html.parser import HTMLParser
+import os
+from pathlib import Path
+import re
+import sys
+
+
+DEFAULT_NAME = "links.md"
+
+
+class Hrefs(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.values = []
+
+    def handle_starttag(self, tag, attrs):
+        for key, value in attrs:
+            if key.lower() == "href" and value:
+                self.values.append(value.strip())
+
+    handle_startendtag = handle_starttag
+
+
+def unescape_markdown(value):
+    return re.sub(r"\\([\\`*{}\[\]()#+\-.!_<>|])", r"\1", value)
+
+
+def escape_destination(value):
+    """Escape destination characters that would break an inline Markdown link."""
+    value = value.replace("\\", "\\\\")
+    value = value.replace(" ", "%20")
+    return value.replace("(", "\\(").replace(")", "\\)")
+
+
+def escape_title(value):
+    return value.replace("\\", "\\\\").replace("[", "\\[").replace("]", "\\]")
+
+
+def balanced_end(text, start, opening, closing):
+    depth = 0
+    i = start
+    while i < len(text):
+        if text[i] == "\\":
+            i += 2
+            continue
+        if text[i] == opening:
+            depth += 1
+        elif text[i] == closing:
+            depth -= 1
+            if depth == 0:
+                return i
+        i += 1
+    return None
+
+
+def parse_destination(raw):
+    raw = raw.strip()
+    # Support <URL> and optional quoted Markdown titles.
+    if raw.startswith("<"):
+        end = raw.find(">")
+        if end >= 0:
+            return unescape_markdown(raw[1:end].strip())
+    return unescape_markdown(raw.split(None, 1)[0]) if raw else ""
+
+
+def markdown_links(line):
+    found = []
+    i = 0
+    while i < len(line):
+        if line[i] == "\\":
+            i += 2
+            continue
+        if line[i] != "[":
+            i += 1
+            continue
+        title_end = balanced_end(line, i, "[", "]")
+        if title_end is None or line[title_end + 1:title_end + 2] != "(":
+            i += 1
+            continue
+        link_end = balanced_end(line, title_end + 1, "(", ")")
+        if link_end is None:
+            i += 1
+            continue
+        title = unescape_markdown(line[i + 1:title_end]).strip()
+        raw_destination = line[title_end + 2:link_end].strip()
+        # Some sources wrap destinations as [URL](URL); honor its inner link.
+        nested = markdown_links(raw_destination) if raw_destination.startswith("[") else []
+        href = nested[0][1] if nested else parse_destination(raw_destination)
+        if href:
+            found.append((title, href))
+        i = link_end + 1
+    return found
+
+
+def line_links(line):
+    links = markdown_links(line)
+    parser = Hrefs()
+    try:
+        parser.feed(line)
+    except (ValueError, AssertionError):
+        pass
+    links.extend((href, href) for href in parser.values)
+
+    # Preserve Markdown links already found, then collect remaining bare URLs.
+    occupied = []
+    for match in re.finditer(r"\[[^\]]*\]\([^\n]*\)", line):
+        occupied.append(match.span())
+    for match in re.finditer(r"<[^>]*\bhref\s*=\s*(?:\"[^\"]*\"|'[^']*'|[^\s>]+)[^>]*>", line, re.I):
+        occupied.append(match.span())
+    for match in re.finditer(r"[a-z][a-z0-9+.-]*://[^\s<>\"'`]+", line, re.I):
+        url = match.group(0).rstrip(".,;:!?)]}")
+        if any(a <= match.start() < b for a, b in occupied):
+            continue
+        links.append((url, url))
+    return links
+
+
+def input_files(values):
+    seen = set()
+    for value in values:
+        path = Path(value).expanduser()
+        if not path.exists():
+            raise ValueError("Input does not exist: {}".format(path))
+        paths = []
+        if path.is_dir():
+            for root, dirs, files in os.walk(path, followlinks=True):
+                dirs.sort()
+                paths.extend(Path(root) / name for name in sorted(files))
+        elif path.is_file():
+            paths = [path]
+        for file_path in paths:
+            if not file_path.is_file():
+                continue
+            key = file_path.resolve()
+            if key not in seen:
+                seen.add(key)
+                yield file_path
+
+
+def output_path(value):
+    if value is None:
+        return Path.cwd() / DEFAULT_NAME
+    path = Path(value).expanduser()
+    if path.suffix:
+        return path
+    return path / DEFAULT_NAME
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("inputs", nargs="+", help="files/directories; each argument may contain comma-separated paths")
+    parser.add_argument("--out", help="output Markdown file or directory (default: ./{})".format(DEFAULT_NAME))
+    args = parser.parse_args()
+    values = [part.strip() for item in args.inputs for part in item.split(",") if part.strip()]
+    try:
+        rows = []
+        for path in input_files(values):
+            try:
+                content = path.read_text(encoding="utf-8")
+            except UnicodeDecodeError as error:
+                raise ValueError("Cannot read as UTF-8 text: {}".format(path)) from error
+            for line in content.splitlines():
+                rows.extend("* [{}]({})".format(escape_title(title or href), escape_destination(href))
+                            for title, href in line_links(line))
+        destination = output_path(args.out)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_text("\n".join(rows) + ("\n" if rows else ""), encoding="utf-8")
+    except (OSError, ValueError) as error:
+        print("{}: {}".format(parser.prog, error), file=sys.stderr)
+        return 2
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
