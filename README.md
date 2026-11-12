@@ -70,8 +70,7 @@ links as a Markdown bullet list. It uses only Python's standard library.
 
 ### Usage
 ```shell
-bin/extract-markdown-links notes.md,docs/ references.txt --out=reports/links.md
-bin/extract-markdown-links docs --out=reports
+bin/extract-markdown-links $HOME/Workspace/private-diary/_posts --out="reports/diary.md"
 ```
 
 Arguments may be files or directories, and each argument may contain
